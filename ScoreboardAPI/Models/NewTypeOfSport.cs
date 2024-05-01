@@ -1,7 +1,6 @@
 ﻿namespace ScoreboardAPI.Models;
 
-public class TypeOfSport
+public class NewTypeOfSport
 {
-    public int Id { get; set; }
     public string? Name { get; set; }
 }

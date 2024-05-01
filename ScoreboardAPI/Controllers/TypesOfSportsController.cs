@@ -1,80 +1,93 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using BusinessLogic.Services;
 using Microsoft.AspNetCore.Mvc;
 using ScoreboardAPI.Models;
-using ScoreboardAPI.Services;
-using System.Security.Cryptography.X509Certificates;
 
-namespace ScoreboardAPI.Controllers.Models
+namespace ScoreboardAPI.Controllers.Models;
+
+[ApiController]
+[Route("[controller]")]
+public class TypesOfSportsController : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class TypesOfSportsController : ControllerBase
+    private readonly ITypeOfSportsService _typeOfSportsService;
+
+    public TypesOfSportsController(ITypeOfSportsService typeOfSportsService)
     {
-        private TypeOfSportsService _sportsService;
-        public TypesOfSportsController() 
-        {
-            _sportsService = new TypeOfSportsService();
-        }
+        _typeOfSportsService = typeOfSportsService;
+    }
 
-        [HttpGet]
-        public IEnumerable<TypeOfSport> Get()
-        {
-            return _sportsService.GetAll();
-        }
+    [HttpGet]
+    public IEnumerable<TypeOfSport> Get()
+    {
+        var typeOfSports = _typeOfSportsService.GetAll();
 
-        [HttpGet("{sportId}")]
-        public ActionResult<TypeOfSport> GetSportById(int sportId)
-        {
-            var sport = _sportsService.FirstOrDefault(s => s.SportId == sportId);
-            if (sport == null)
+        return typeOfSports.Select(s => 
+            new TypeOfSport
             {
-                return NotFound("Write messege ");//TODO: Write massege for not found
-            }
-            return Ok(sport);
-        }
+                Id = s.Id,
+                Name = s.Name,
+            })
+            .ToList();
+    }
 
-        [HttpPost]
-        public ActionResult CreateSport([FromBody] TypeOfSport newSport)
+    [HttpGet("{sportId}")]
+    public ActionResult<TypeOfSport> GetSportById(int sportId)
+    {
+        var typeOfSport = _typeOfSportsService.Get(sportId);
+
+        if (typeOfSport is null)
         {
-            if (newSport == null)
-            {
-                return BadRequest("Invalid sport data provided");
-            }
-
-            _sportsService.Add(newSport);
-
-            return CreatedAtRoute("GetSportById", new { sportId = newSport.SportId }, newSport);
+            return NotFound("Type of sport not found.");
         }
 
-        [HttpPut("{spotrId}")]
-        public ActionResult UpdateSport(int sportId, [FromBody] TypeOfSport updateSport)
+        var model = new TypeOfSport
         {
-            if (updateSport == null || updateSport.SportId != null)
-            {
-                return BadRequest("Invalid sport data or sport ID mismatch");
-            }
+            Id = typeOfSport.Id,
+            Name = typeOfSport.Name,
+        };
 
-            var existingSport = _sportsService.FirstOrDefault(s => s.SportId == sportId);
-            if (existingSport == null)
-            {
-                return NotFound("Sport not found");
-            }
+        return Ok(model);
+    }
 
-            return NoContent();
-        }
-
-        [HttpDelete("{spotrId}")]
-        public ActionResult DeleteSport(int sportId) 
+    [HttpPost]
+    public ActionResult CreateSport([FromBody] NewTypeOfSport newSport)
+    {
+        if (newSport == null)
         {
-            var sportToDelete = _sportsService.FirstOrDefault(s => s.SportId == sportId);
-            if (sportToDelete == null)
-            {
-                return NotFound("Sport not found");
-            }
-
-            _sportsService.Remove(sportToDelete);
-
-            return NoContent();
+            return BadRequest("Invalid type of sport data provided.");
         }
+
+        if (string.IsNullOrWhiteSpace(newSport.Name))
+        {
+            return BadRequest("Invalid type of sport name.");
+        }
+
+        int id = _typeOfSportsService.Add(newSport.Name);
+
+        return Created(id.ToString(), new { Id = id });
+    }
+    /*
+    [HttpPut("{spotrId}")]
+    public ActionResult UpdateSport(int sportId, [FromBody] TypeOfSport updateSport)
+    {
+        if (updateSport == null || updateSport.SportId != null)
+        {
+            return BadRequest("Invalid sport data or sport ID mismatch");
+        }
+
+        var existingSport = _typeOfSportsService.FirstOrDefault(s => s.SportId == sportId);
+        if (existingSport == null)
+        {
+            return NotFound("Sport not found");
+        }
+
+        return NoContent();
+    }
+    */
+    [HttpDelete("{sportId}")]
+    public ActionResult DeleteSport(int sportId) 
+    {
+        _typeOfSportsService.Delete(sportId);
+
+        return Ok();
     }
 }
