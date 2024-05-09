@@ -1,95 +1,79 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using BusinessLogic.Dtos;
+using BusinessLogic.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using ScoreboardAPI.Models;
 using System.Security.Cryptography.X509Certificates;
 
-namespace ScoreboardAPI.Controllers.Models
+namespace ScoreboardAPI.Controllers.Models;
+
+[ApiController]
+[Route("[controller]")]
+public class TeamsController : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class TeamsController : ControllerBase
+    private readonly ITeamService _teamService;
+
+    public TeamsController(TeamService teamService)
     {
-        private static List<Teams> _teamService;
+        _teamService = teamService;
+    }
 
-        static TeamsController()
-        {
-            _teamService = new List<Teams>()
+    [HttpGet]
+    public IEnumerable<Team> Get()
+    {
+        var teamService = _teamService.GetAll();
+
+        return teamService.Select(s =>
+            new Team
             {
-                new Teams{ TeamId = 1, TeamName = "Los Angeles Lakers" },
-                new Teams{ TeamId = 2, TeamName = "San Antonio Spurs" },
-                new Teams{ TeamId = 3, TeamName = "Milwaukee Bucks" },
-            };
-        }
-        
-        [HttpGet]
-        public ActionResult GetTeams()
+                Id = s.Id,
+                Name = s.Name,
+            })
+            .ToList();
+    }
+
+    [HttpGet("{teamId}")]
+    public ActionResult<Team> GetSportById(int teamId)
+    {
+        var teamService = _teamService.Get(teamId);
+
+        if (_teamService is null)
         {
-            return Ok(_teamService);
-        }
-        
-        [HttpGet("{teamId}")]
-        public ActionResult GetTeam(int teamId)
-        {
-            var team = _teamService.FirstOrDefault(t => t.TeamId == teamId);
-            if (team == null)
-            {
-                return NotFound(); 
-            }
-            return Ok(team); 
+            return NotFound("Team not found.");
         }
 
-        [HttpPost]
-        public ActionResult CreateTeam([FromBody] Teams newTeam)
+        var team = new Team
         {
-            if (newTeam == null || string.IsNullOrEmpty(newTeam.TeamName))
-            {
-                return BadRequest("Team name is required"); 
-            }
+            Id = teamService.Id,
+            Name = teamService.Name,
+        };
 
-          
-            if (_teamService.Any(t => t.TeamName == newTeam.TeamName))
-            {
-                return Conflict("Team name already exists"); 
-            }
+        return Ok(team);
+    }
 
-            
-            int nextId = _teamService.Max(t => t.TeamId) + 1;
-            newTeam.TeamId = nextId;
-
-            _teamService.Add(newTeam);
-            return CreatedAtRoute("GetTeam", new { teamId = newTeam.TeamId }, newTeam); 
-        }
-        
-        [HttpPut("{teamId}")]
-        public ActionResult UpdateTeam(int teamId, [FromBody] Teams updatedTeam)
+    [HttpPost]
+    public ActionResult CreateTeam([FromBody] Team newTeam)
+    {
+        if (newTeam == null)
         {
-            if (updatedTeam == null || string.IsNullOrEmpty(updatedTeam.TeamName) || updatedTeam.TeamId != teamId)
-            {
-                return BadRequest("Invalid team data"); 
-            }
-
-            var existingTeam = _teamService.FirstOrDefault(t => t.TeamId == teamId);
-            if (existingTeam == null)
-            {
-                return NotFound(); 
-            }
-
-            existingTeam.TeamName = updatedTeam.TeamName;
-
-            return NoContent(); 
+            return BadRequest("Invalid team data provided.");
         }
-        
-        [HttpDelete("{teamId}")]
-        public ActionResult DeleteTeam(int teamId)
+
+        if (string.IsNullOrWhiteSpace(newTeam.Name))
         {
-            var teamToDelete = _teamService.FirstOrDefault(t => t.TeamId == teamId);
-            if (teamToDelete == null)
-            {
-                return NotFound(); 
-            }
-
-            _teamService.Remove(teamToDelete);
-            return NoContent(); 
+            return BadRequest("Invalid team name.");
         }
+
+        int id = _teamService.Add(newTeam.Name);
+
+        return Created(id.ToString(), new { Id = id });
+    }
+
+    [HttpDelete("{teamId}")]
+    public ActionResult DeleteSport(int teamId)
+    {
+        _teamService.Delete(teamId);
+
+        return Ok();
     }
 }
