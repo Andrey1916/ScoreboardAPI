@@ -7,6 +7,6 @@ namespace ScoreboardAPI.Models
     public class Teams
     {
             public int TeamId { get; set; }
-            public string TeamName { get; set; }
+            public string? TeamName { get; set; }
     }
 }

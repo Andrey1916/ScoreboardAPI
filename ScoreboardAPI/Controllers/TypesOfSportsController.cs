@@ -65,24 +65,25 @@ public class TypesOfSportsController : ControllerBase
 
         return Created(id.ToString(), new { Id = id });
     }
-    /*
-    [HttpPut("{spotrId}")]
-    public ActionResult UpdateSport(int sportId, [FromBody] TypeOfSport updateSport)
-    {
-        if (updateSport == null || updateSport.SportId != null)
-        {
-            return BadRequest("Invalid sport data or sport ID mismatch");
-        }
 
-        var existingSport = _typeOfSportsService.FirstOrDefault(s => s.SportId == sportId);
-        if (existingSport == null)
-        {
-            return NotFound("Sport not found");
-        }
+    /*[HttpPut("{spotrId}")]
+     public ActionResult UpdateSport(int sportId, [FromBody] TypeOfSport updateSport)
+     {
+         if (updateSport == null || updateSport.SportId != null)
+         {
+             return BadRequest("Invalid sport data or sport ID mismatch");
+         }
 
-        return NoContent();
-    }
-    */
+         var existingSport = _typeOfSportsService.FirstOrDefault(s => s.SportId == sportId);
+         if (existingSport == null)
+         {
+             return NotFound("Sport not found");
+         }
+
+         return NoContent();
+     }
+     */
+
     [HttpDelete("{sportId}")]
     public ActionResult DeleteSport(int sportId) 
     {

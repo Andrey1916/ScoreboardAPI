@@ -4,8 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using ScoreboardAPI.Models;
 using System.Numerics;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace ScoreboardAPI.Controllers
 {
     [Route("api/[controller]")]
@@ -35,9 +33,9 @@ namespace ScoreboardAPI.Controllers
         }
 
         [HttpGet("{playerId}")]
-        public ActionResult<Player> GetSportById(int sportId)
+        public ActionResult<Player> GetSportById(int playerId)
         {
-            var playerService = _playerService.Get(sportId);
+            var playerService = _playerService.Get(playerId);
 
             if (playerService is null)
             {

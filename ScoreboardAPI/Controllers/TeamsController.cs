@@ -1,9 +1,6 @@
 ﻿using BusinessLogic.Dtos;
 using BusinessLogic.Services;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using ScoreboardAPI.Models;
-using System.Security.Cryptography.X509Certificates;
 
 namespace ScoreboardAPI.Controllers.Models;
 
@@ -23,11 +20,11 @@ public class TeamsController : ControllerBase
     {
         var teamService = _teamService.GetAll();
 
-        return teamService.Select(s =>
+        return teamService.Select(t =>
             new Team
             {
-                Id = s.Id,
-                Name = s.Name,
+                Id = t.Id,
+                Name = t.Name,
             })
             .ToList();
     }
@@ -37,7 +34,7 @@ public class TeamsController : ControllerBase
     {
         var teamService = _teamService.Get(teamId);
 
-        if (_teamService is null)
+        if (teamService is null)
         {
             return NotFound("Team not found.");
         }
